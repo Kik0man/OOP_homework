@@ -15,6 +15,20 @@ class Product:
         self.__price = price
         self.quantity = quantity
 
+    def __str__(self) -> str:
+        """Строковое представление продукта в формате: Название продукта, __руб. Остаток: __ шт."""
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
+
+    def __add__(self, other: "Product") -> Any:
+        """Сложение продуктов: сумма стоимости всех товаров на складе"""
+        if not isinstance(other, Product):
+            raise TypeError("Можно складывать только объекты класса Product")
+
+        # Полная стоимость = цена × количество
+        total_self = self.price * self.quantity
+        total_other = other.price * other.quantity
+        return total_self + total_other
+
     @classmethod
     def new_product(cls, product_data: dict, products_list: Optional[list] = None) -> Any:
         """Класс-метод для создания нового продукта с проверкой дубликатов"""
@@ -28,7 +42,7 @@ class Product:
                 # Выбираем максимальную цену
                 existing_product.price = max(existing_product.price, product_data.get("price", 0))
                 return existing_product
-
+        # Если дубликат не найден, создаем новый товар
         return cls(
             name=product_data["name"],
             description=product_data["description"],
@@ -42,7 +56,7 @@ class Product:
         return self.__price
 
     @price.setter
-    def price(self, new_price: int) -> Any:
+    def price(self, new_price: float) -> Any:
         """Сеттер для цены с проверкой и подтверждением"""
         if new_price <= 0:
             print("Цена не должна быть нулевая или отрицательная")

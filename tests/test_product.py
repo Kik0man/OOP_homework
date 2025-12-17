@@ -1,6 +1,7 @@
 from typing import Any
 from unittest.mock import patch
 
+from src.Category import Category
 from src.Product import Product
 
 
@@ -77,3 +78,36 @@ def test_price_decrease_with_confirmation() -> None:
 
     # Цена должна измениться
     assert product.price == 80.0
+
+
+def test_product_str_representation() -> None:
+    """Тест строкового представления Product"""
+    product = Product("Телефон", "Смартфон", 30000.0, 10)
+
+    expected_str = "Телефон, 30000.0 руб. Остаток: 10 шт."
+    assert str(product) == expected_str
+
+
+def test_product_addition() -> None:
+    """Тест сложения продуктов"""
+    product_a = Product("Товар A", "Описание", 100.0, 10)
+    product_b = Product("Товар B", "Описание", 200.0, 2)
+
+    result = product_a + product_b
+
+    # Ожидаемый результат: 100×10 + 200×2 = 1000 + 400 = 1400
+    assert result == 1400.0
+
+
+def test_products_getter_optimization() -> None:
+    """Тест оптимизированного геттера products"""
+    product1 = Product("Товар1", "Описание", 100.0, 5)
+    product2 = Product("Товар2", "Описание", 200.0, 3)
+
+    category = Category("Категория", "Описание", [product1, product2])
+
+    products_str = category.products
+
+    # Проверяем, что используется строковое представление продукта
+    assert "Товар1, 100.0 руб. Остаток: 5 шт." in products_str
+    assert "Товар2, 200.0 руб. Остаток: 3 шт." in products_str

@@ -15,11 +15,20 @@ class Category:
     def __init__(self, name: str, description: str, products: Any) -> None:
         self.name = name
         self.description = description
-        self.__products = products
-        Category.product_count += len(products) if products else 0
+        self.__products = products if products else []
+        Category.product_count += len(self.__products)
         Category.category_count += 1
 
-    def add_product(self, new_product: Product) -> Any:
+    def __str__(self) -> str:
+        """Строковое представление категории в формате: Название категории, количество продуктов: __ шт."""
+        total_quantity = sum(product.quantity for product in self.__products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
+
+    def __iter__(self) -> Any:
+        """Возвращает итератор для перебора продуктов в категории"""
+        return CategoryIterator(self.__products)
+
+    def add_product(self, new_product: Product) -> None:
         """Метод для добавления товара в категорию"""
         self.__products.append(new_product)
         Category.product_count += 1
@@ -29,5 +38,24 @@ class Category:
         """Геттер для получения строкового представления товаров"""
         products_info = []
         for product in self.__products:
-            products_info.append(f"{product.name}, {product.price} руб. Остаток: {product.quantity} шт.")
+            products_info.append(str(product))
         return "\n".join(products_info)
+
+
+class CategoryIterator:
+    """Вспомогательный класс для итерации по товарам категории"""
+
+    def __init__(self, products: list) -> None:
+        self.products = products
+        self.index = 0
+
+    def __iter__(self) -> "CategoryIterator":
+        return self
+
+    def __next__(self) -> Any:
+        """Возвращает очередной товар категории"""
+        if self.index < len(self.products):
+            product = self.products[self.index]
+            self.index += 1
+            return product
+        raise StopIteration
