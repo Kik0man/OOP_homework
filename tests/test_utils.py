@@ -17,7 +17,11 @@ def test_create_objects_from_json(category_data: Any) -> None:
 
     assert len(categories) == 1
     assert categories[0].name == "Смартфоны"
-    assert len(categories[0].products) == 2
+
+    # Теперь products возвращает строку, проверяем содержимое
+    products_info = categories[0].products
+    assert "Samsung Galaxy C23 Ultra" in products_info
+    assert "Iphone 15" in products_info
 
     # Проверяем подсчет продуктов
     assert Category.product_count == 2

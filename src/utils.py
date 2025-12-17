@@ -17,11 +17,15 @@ def read_json(path: str) -> Any:
 def create_objects_from_json(product_info: Any) -> Any:
     "Функция для создания объектов классов"
     categories = []
+    all_products: list[Product] = []  # Собираем все продукты для проверки дубликатов
     for category_data in product_info:
         # Создаем список объектов Product для этой категории
         product_objects = []
         for product_dict in category_data["products"]:
-            product_objects.append(Product(**product_dict))
+            # Используем new_product с проверкой дубликатов
+            product = Product.new_product(product_dict, all_products)
+            product_objects.append(product)
+            all_products.append(product)
 
         # Создаем объект Category
         category = Category(
