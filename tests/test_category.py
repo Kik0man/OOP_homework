@@ -88,16 +88,31 @@ def test_add_product_method() -> None:
     assert Category.product_count == initial_count + 1
 
 
-def test_products_getter_format() -> None:
-    """Тест формата вывода геттера products"""
-    product1 = Product("Телевизор", "4K", 50000.0, 3)
-    product2 = Product("Ноутбук", "16GB RAM", 80000.0, 5)
+def test_category_iterator() -> None:
+    """Тест итератора категории"""
+    product1 = Product("Товар1", "Описание", 100.0, 1)
+    product2 = Product("Товар2", "Описание", 200.0, 2)
+    product3 = Product("Товар3", "Описание", 300.0, 3)
 
-    category = Category("Электроника", "Техника", [product1, product2])
+    category = Category("Категория", "Описание", [product1, product2, product3])
 
-    products_info = category.products
+    # Проверяем итерацию
+    products_from_iterator = []
+    for product in category:
+        products_from_iterator.append(product)
 
-    # Проверяем формат вывода
-    assert "Телевизор, 50000.0 руб. Остаток: 3 шт." in products_info
-    assert "Ноутбук, 80000.0 руб. Остаток: 5 шт." in products_info
-    assert "\n" in products_info  # Должен быть перенос строки между продуктами
+    assert len(products_from_iterator) == 3
+    assert products_from_iterator[0].name == "Товар1"
+    assert products_from_iterator[1].name == "Товар2"
+    assert products_from_iterator[2].name == "Товар3"
+
+
+def test_category_str_representation() -> None:
+    """Тест строкового представления Category"""
+    product1 = Product("Товар1", "Описание", 100.0, 5)
+    product2 = Product("Товар2", "Описание", 200.0, 3)
+
+    category = Category("Категория", "Описание", [product1, product2])
+
+    expected_str = "Категория, количество продуктов: 8 шт."
+    assert str(category) == expected_str
