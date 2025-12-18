@@ -23,7 +23,9 @@ class Product:
         """Сложение продуктов: сумма стоимости всех товаров на складе"""
         if not isinstance(other, Product):
             raise TypeError("Можно складывать только объекты класса Product")
-
+        # Проверяем, что продукты одного типа
+        if type(self) is not type(other):
+            raise TypeError("Нельзя складывать продукты разных классов")
         # Полная стоимость = цена × количество
         total_self = self.price * self.quantity
         total_other = other.price * other.quantity
@@ -69,3 +71,43 @@ class Product:
                 return
 
         self.__price = new_price
+
+
+class Smartphone(Product):
+    """Класс для смартфонов, наследник Product"""
+
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        price: float,
+        quantity: int,
+        efficiency: float,
+        model: str,
+        memory: int,
+        color: str,
+    ) -> None:
+        super().__init__(name, description, price, quantity)
+        self.efficiency = efficiency  # производительность
+        self.model = model  # модель
+        self.memory = memory  # объем встроенной памяти
+        self.color = color  # цвет
+
+
+class LawnGrass(Product):
+    """Класс для травы газонной, наследник Product"""
+
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        price: float,
+        quantity: int,
+        country: str,
+        germination_period: str,
+        color: str,
+    ) -> None:
+        super().__init__(name, description, price, quantity)
+        self.country = country  # страна-производитель
+        self.germination_period = germination_period  # срок прорастания
+        self.color = color  # цвет
