@@ -2,7 +2,7 @@ from typing import Any
 from unittest.mock import patch
 
 from src.Category import Category
-from src.Product import Product
+from src.Product import Product, Smartphone, LawnGrass
 
 
 def test_product_initialization(product_data: Any) -> None:
@@ -111,3 +111,41 @@ def test_products_getter_optimization() -> None:
     # Проверяем, что используется строковое представление продукта
     assert "Товар1, 100.0 руб. Остаток: 5 шт." in products_str
     assert "Товар2, 200.0 руб. Остаток: 3 шт." in products_str
+
+
+def test_smartphone_initialization() -> None:
+    """Тест инициализации Smartphone"""
+    smartphone = Smartphone("Samsung Galaxy S23 Ultra", "256GB, Серый", 180000.0, 5, 95.5, "S23 Ultra", 256, "Серый")
+
+    assert smartphone.name == "Samsung Galaxy S23 Ultra"
+    assert smartphone.price == 180000.0
+    assert smartphone.quantity == 5
+    assert smartphone.efficiency == 95.5
+    assert smartphone.model == "S23 Ultra"
+    assert smartphone.memory == 256
+    assert smartphone.color == "Серый"
+    assert isinstance(smartphone, Product)
+    assert isinstance(smartphone, Smartphone)
+
+
+def test_lawn_grass_initialization() -> None:
+    """Тест инициализации LawnGrass"""
+    grass = LawnGrass("Газонная трава", "Элитная трава", 500.0, 20, "Россия", "7 дней", "Зеленый")
+
+    assert grass.name == "Газонная трава"
+    assert grass.price == 500.0
+    assert grass.quantity == 20
+    assert grass.country == "Россия"
+    assert grass.germination_period == "7 дней"
+    assert grass.color == "Зеленый"
+    assert isinstance(grass, Product)
+    assert isinstance(grass, LawnGrass)
+
+
+def test_add_same_class_products() -> None:
+    """Тест сложения продуктов одного класса"""
+    smartphone1 = Smartphone("Phone1", "Desc", 100.0, 5, 90.0, "Model1", 128, "Black")
+    smartphone2 = Smartphone("Phone2", "Desc", 200.0, 3, 95.0, "Model2", 256, "White")
+
+    result = smartphone1 + smartphone2
+    assert result == (100.0 * 5) + (200.0 * 3)  # 500 + 600 = 1100
