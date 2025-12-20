@@ -1,8 +1,8 @@
 from typing import Any
 from unittest.mock import patch
 
-from src.Category import Category
-from src.Product import Product, Smartphone, LawnGrass
+from src.Category import Category, Order
+from src.Product import BaseProduct, LawnGrass, Product, Smartphone
 
 
 def test_product_initialization(product_data: Any) -> None:
@@ -149,3 +149,82 @@ def test_add_same_class_products() -> None:
 
     result = smartphone1 + smartphone2
     assert result == (100.0 * 5) + (200.0 * 3)  # 500 + 600 = 1100
+
+
+def test_base_product_abstract_class() -> None:
+    """Тест, что BaseProduct является абстрактным классом"""
+    from abc import ABC
+
+    assert issubclass(BaseProduct, ABC)
+
+    # Проверяем, что Product наследует BaseProduct
+    assert issubclass(Product, BaseProduct)
+    assert issubclass(Smartphone, BaseProduct)
+    assert issubclass(LawnGrass, BaseProduct)
+
+
+def test_product_repr() -> None:
+    """Тест метода __repr__"""
+    product = Product("Продукт", "Описание", 150.0, 10)
+
+    repr_str = repr(product)
+    assert "Product('Продукт', 'Описание', 150.0, 10)" == repr_str
+
+    smartphone = Smartphone("Phone", "Smartphone", 300.0, 5, 90.0, "S10", 128, "White")
+    repr_str = repr(smartphone)
+    assert "Smartphone('Phone', 'Smartphone', 300.0, 5, 90.0, 'S10', 128, 'White')" in repr_str
+
+
+def test_order_class() -> None:
+    """Тест класса Order"""
+    product = Product("Товар", "Описание", 100.0, 50)
+    order = Order(product, 5)
+
+    assert order.name == f"Заказ для {product.name}"
+    assert order.product == product
+    assert order.order_quantity == 5
+    assert order.total_price == 100.0 * 5
+
+    # Проверка строкового представления
+    assert str(order) == "Заказ: Товар, Количество: 5, Итоговая стоимость: 500.0 руб."
+
+    # Проверка геттера products
+    assert order.products == "Товар - 5 шт."
+
+
+def test_order_with_different_products() -> None:
+    """Тест Order с разными типами продуктов"""
+    smartphone = Smartphone("Phone", "Smart", 200.0, 10, 95.0, "M1", 256, "Black")
+    smartphone_order = Order(smartphone, 2)
+
+    assert smartphone_order.total_price == 400.0
+    assert "Phone" in str(smartphone_order)
+
+    grass = LawnGrass("Трава", "Газонная", 50.0, 100, "Россия", "7 дней", "Зеленый")
+    grass_order = Order(grass, 10)
+
+    assert grass_order.total_price == 500.0
+    assert "Трава" in str(grass_order)
+
+
+def test_base_container_abstract_class() -> None:
+    """Тест, что BaseContainer является абстрактным классом"""
+    from abc import ABC
+
+    from src.Category import BaseContainer, Category
+
+    assert issubclass(BaseContainer, ABC)
+    assert issubclass(Category, BaseContainer)
+    assert issubclass(Order, BaseContainer)
+
+    # Проверяем общие свойства
+    category = Category("Категория", "Описание", [])
+    order = Order(Product("Товар", "Оп", 100.0, 10), 2)
+
+    assert hasattr(category, "name")
+    assert hasattr(category, "description")
+    assert hasattr(category, "products")
+
+    assert hasattr(order, "name")
+    assert hasattr(order, "description")
+    assert hasattr(order, "products")
