@@ -1,5 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any, Optional
+
+
+class ZeroQuantityError(Exception):
+    """Пользовательское исключение для товаров с нулевым количеством"""
+
+    pass
 
 
 class BaseProduct(ABC):
@@ -64,7 +70,11 @@ class Product(LoggingMixin, BaseProduct):
     quantity: int
 
     def __init__(self, name: str, description: str, price: float, quantity: int) -> None:
-        # сначала LoggingMixin, потом BaseProduct
+        # Проверяем количество товара
+        if quantity == 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
+
+        # Сначала LoggingMixin, потом BaseProduct
         super().__init__(name, description, price, quantity)
         self.__price = price
 
@@ -91,6 +101,11 @@ class Product(LoggingMixin, BaseProduct):
         """Класс-метод для создания нового продукта с проверкой дубликатов"""
         if products_list is None:
             products_list = []
+
+        # Проверяем количество в новых данных
+        quantity = product_data.get("quantity", 0)
+        if quantity == 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
 
         # Проверяем существующие товары на дубликаты
         for existing_product in products_list:
