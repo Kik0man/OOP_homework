@@ -1,8 +1,10 @@
 from typing import Any
 from unittest.mock import patch
 
+import pytest
+
 from src.Category import Category, Order
-from src.Product import BaseProduct, LawnGrass, Product, Smartphone
+from src.Product import BaseProduct, LawnGrass, Product, Smartphone, ZeroQuantityError
 
 
 def test_product_initialization(product_data: Any) -> None:
@@ -228,3 +230,175 @@ def test_base_container_abstract_class() -> None:
     assert hasattr(order, "name")
     assert hasattr(order, "description")
     assert hasattr(order, "products")
+
+
+def test_product_zero_quantity() -> None:
+    """Тест создания продукта с нулевым количеством"""
+    # Проверяем, что создание продукта с нулевым количеством вызывает ValueError
+    with pytest.raises(ValueError) as exc_info:
+        Product("Бракованный товар", "Неверное количество", 1000.0, 0)
+
+    assert "Товар с нулевым количеством не может быть добавлен" in str(exc_info.value)
+
+    # Проверяем, что создание продукта с положительным количеством работает
+    product = Product("Нормальный товар", "Описание", 1000.0, 5)
+    assert product.quantity == 5
+
+
+def test_smartphone_zero_quantity() -> None:
+    """Тест создания смартфона с нулевым количеством"""
+    with pytest.raises(ValueError) as exc_info:
+        Smartphone("Бракованный телефон", "Описание", 50000.0, 0, 95.0, "ModelX", 256, "Black")
+
+    assert "Товар с нулевым количеством не может быть добавлен" in str(exc_info.value)
+
+
+def test_lawn_grass_zero_quantity() -> None:
+    """Тест создания травы с нулевым количеством"""
+    with pytest.raises(ValueError) as exc_info:
+        LawnGrass("Бракованная трава", "Описание", 500.0, 0, "Россия", "7 дней", "Зеленый")
+
+    assert "Товар с нулевым количеством не может быть добавлен" in str(exc_info.value)
+
+
+def test_category_middle_price() -> None:
+    """Тест метода middle_price для категории"""
+    product1 = Product("Товар1", "Описание", 100.0, 5)
+    product2 = Product("Товар2", "Описание", 200.0, 3)
+    product3 = Product("Товар3", "Описание", 300.0, 2)
+
+    category = Category("Категория", "Описание", [product1, product2, product3])
+
+    # Средняя цена: (100 + 200 + 300) / 3 = 200.0
+    assert category.middle_price() == 200.0
+
+
+def test_category_middle_price_empty() -> None:
+    """Тест метода middle_price для пустой категории"""
+    category = Category("Пустая категория", "Описание", [])
+
+    # Для пустой категории должно возвращаться 0
+    assert category.middle_price() == 0.0
+
+
+def test_category_middle_price_single_product() -> None:
+    """Тест метода middle_price для категории с одним товаром"""
+    product = Product("Товар", "Описание", 150.0, 10)
+    category = Category("Категория", "Описание", [product])
+
+    assert category.middle_price() == 150.0
+
+
+def test_zero_quantity_error_class() -> None:
+    """Тест пользовательского исключения ZeroQuantityError"""
+    # Проверяем, что это исключение
+    assert issubclass(ZeroQuantityError, Exception)
+
+    # Проверяем создание исключения
+    error = ZeroQuantityError("Тестовое сообщение")
+    assert str(error) == "Тестовое сообщение"
+
+
+def test_category_with_zero_quantity_product() -> None:
+    """Тест создания категории с товаром нулевого количества"""
+    product1 = Product("Товар1", "Описание", 100.0, 5)
+
+    # Создаем товар с нулевым количеством напрямую (минуя проверку в конструкторе)
+    class BadProduct(Product):
+        def __init__(self, name: str, description: str, price: float, quantity: int):
+            # Пропускаем проверку родительского класса
+            self.name = name
+            self.description = description
+            self._Product__price = price
+            self.quantity = quantity
+
+    bad_product = BadProduct("Бракованный", "Описание", 50.0, 0)
+
+    # Теперь проверяем, что категория не принимает такой товар
+    with pytest.raises(ZeroQuantityError) as exc_info:
+        Category("Категория", "Описание", [product1, bad_product])
+
+    assert "имеет нулевое количество" in str(exc_info.value)
+
+
+def test_add_product_with_zero_quantity() -> None:
+    """Тест добавления товара с нулевым количеством в категорию"""
+    product1 = Product("Товар1", "Описание", 100.0, 5)
+    category = Category("Категория", "Описание", [product1])
+
+    # Создаем товар с нулевым количеством (другой способ)
+    class BadProduct2(Product):
+        def __init__(self, name: str, description: str, price: float, quantity: int):
+            # Пропускаем проверку родительского класса
+            self.name = name
+            self.description = description
+            self._Product__price = price
+            self.quantity = quantity
+
+    bad_product = BadProduct2("Бракованный2", "Описание", 50.0, 0)
+
+    # Пытаемся добавить товар с нулевым количеством
+    with pytest.raises(ZeroQuantityError) as exc_info:
+        category.add_product(bad_product)
+
+    assert "имеет нулевое количество" in str(exc_info.value)
+
+
+def test_order_with_zero_quantity_product() -> None:
+    """Тест создания заказа с товаром нулевого количества"""
+
+    # Создаем товар с нулевым количеством (обходным путем)
+    class BadProduct3(Product):
+        def __init__(self, name: str, description: str, price: float, quantity: int):
+            self.name = name
+            self.description = description
+            self._Product__price = price
+            self.quantity = quantity
+
+    bad_product = BadProduct3("Товар без запаса", "Описание", 100.0, 0)
+
+    # Пытаемся создать заказ
+    with pytest.raises(ZeroQuantityError) as exc_info:
+        Order(bad_product, 2)
+
+    assert "имеет нулевое количество" in str(exc_info.value)
+
+
+def test_add_product_success() -> None:
+    """Тест успешного добавления товара в категорию"""
+    product1 = Product("Товар1", "Описание", 100.0, 5)
+    product2 = Product("Товар2", "Описание", 200.0, 3)
+
+    category = Category("Категория", "Описание", [product1])
+
+    initial_count = len(category.products.split("\n")) if category.products else 0
+
+    # Успешное добавление
+    category.add_product(product2)
+
+    # Проверяем, что товар добавлен
+    final_count = len(category.products.split("\n")) if category.products else 0
+    assert final_count == initial_count + 1
+    assert "Товар2" in category.products
+
+
+def test_new_product_with_zero_quantity() -> None:
+    """Тест new_product с нулевым количеством"""
+    product_data = {"name": "Товар", "description": "Описание", "price": 100.0, "quantity": 0}
+
+    with pytest.raises(ValueError) as exc_info:
+        Product.new_product(product_data)
+
+    assert "Товар с нулевым количеством не может быть добавлен" in str(exc_info.value)
+
+
+def test_regular_product_creation() -> None:
+    """Тест, что обычные товары создаются нормально"""
+    product = Product("Нормальный товар", "Описание", 100.0, 10)
+    assert product.name == "Нормальный товар"
+    assert product.quantity == 10
+    assert product.price == 100.0
+
+    smartphone = Smartphone("Смартфон", "Описание", 200.0, 5, 95.0, "ModelX", 256, "Black")
+    assert smartphone.quantity == 5
+    assert smartphone.efficiency == 95.0

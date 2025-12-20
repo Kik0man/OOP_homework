@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from src.Product import BaseProduct
+from src.Product import BaseProduct, ZeroQuantityError
 
 
 class BaseContainer(ABC):
@@ -36,6 +36,12 @@ class Category(BaseContainer):
     def __init__(self, name: str, description: str, products: Any) -> None:
         super().__init__(name, description)
         self.__products = products if products else []
+
+        # Проверяем продукты на нулевое количество при создании категории
+        for product in self.__products:
+            if product.quantity == 0:
+                raise ZeroQuantityError(f"Товар '{product.name}' имеет нулевое количество")
+
         Category.product_count += len(self.__products)
         Category.category_count += 1
 
@@ -49,13 +55,44 @@ class Category(BaseContainer):
         return CategoryIterator(self.__products)
 
     def add_product(self, new_product: Any) -> None:
-        """Метод для добавления товара в категорию с проверкой типа"""
-        # Проверяем, что new_product является BaseProduct или его наследником
-        if not isinstance(new_product, BaseProduct):
-            raise TypeError("Можно добавлять только объекты класса BaseProduct или его наследников")
+        """Метод для добавления товара в категорию с проверкой типа и количества"""
+        try:
+            # Проверяем, что new_product является BaseProduct или его наследником
+            if not isinstance(new_product, BaseProduct):
+                raise TypeError("Можно добавлять только объекты класса BaseProduct или его наследников")
 
-        self.__products.append(new_product)
-        Category.product_count += 1
+            # Проверяем количество товара
+            if new_product.quantity == 0:
+                raise ZeroQuantityError(
+                    f"Товар '{new_product.name}' имеет нулевое количество и не может быть добавлен"
+                )
+
+            self.__products.append(new_product)
+            Category.product_count += 1
+
+        except ZeroQuantityError as e:
+            print(f"Ошибка: {e}")
+            raise  # Пробрасываем исключение дальше
+        except TypeError as e:
+            print(f"Ошибка типа: {e}")
+            raise  # Пробрасываем исключение дальше
+        else:
+            print(f"Товар '{new_product.name}' успешно добавлен в категорию '{self.name}'")
+        finally:
+            print("Обработка добавления товара завершена")
+
+    def middle_price(self) -> Any:
+        """Метод для подсчета среднего ценника всех товаров в категории"""
+        try:
+            if not self.__products:
+                raise ZeroDivisionError("Категория не содержит товаров")
+
+            total_price = sum(product.price for product in self.__products)
+            average = total_price / len(self.__products)
+            return average
+
+        except ZeroDivisionError:
+            return 0.0
 
     @property
     def products(self) -> str:
@@ -93,6 +130,10 @@ class Order(BaseContainer):
         self.product = product
         self.order_quantity = quantity
         self.total_price = product.price * quantity
+
+        # Проверяем количество товара
+        if self.product.quantity == 0:
+            raise ZeroQuantityError(f"Товар '{product.name}' имеет нулевое количество и не может быть заказан")
 
     def __str__(self) -> str:
         """Строковое представление заказа"""
